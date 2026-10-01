@@ -9,7 +9,49 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
+  <link id="pwa-manifest" rel="manifest">
+  <meta name="theme-color" content="#020617">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="NexusAccount">
+
   <script>
+    // Create inline Web App Manifest for native browser address bar recognition
+    const manifestData = {
+      name: "NexusAccount App OS",
+      short_name: "NexusAccount",
+      description: "NexusAccount Portal & Capability Platform Web App",
+      start_url: "./",
+      display: "standalone",
+      background_color: "#020617",
+      theme_color: "#020617",
+      icons: [
+        {
+          src: "https://placehold.co/192x192/2563eb/ffffff?text=Nexus",
+          sizes: "192x192",
+          type: "image/png"
+        },
+        {
+          src: "https://placehold.co/512x512/2563eb/ffffff?text=Nexus",
+          sizes: "512x512",
+          type: "image/png"
+        }
+      ]
+    };
+    const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/json' });
+    document.getElementById('pwa-manifest').href = URL.createObjectURL(manifestBlob);
+
+    // Register Inline Service Worker required for PWA Address Bar installation criteria
+    if ('serviceWorker' in navigator) {
+      const swCode = `
+        self.addEventListener('install', (e) => self.skipWaiting());
+        self.addEventListener('activate', (e) => self.clients.claim());
+        self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request).catch(() => new Response('Offline'))));
+      `;
+      const swBlob = new Blob([swCode], { type: 'text/javascript' });
+      navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+    }
+
     tailwind.config = {
       darkMode: 'class',
       theme: {
@@ -76,9 +118,9 @@
 
       <div class="flex items-center gap-3">
         <!-- Standalone Web App Installer Action Button -->
-        <button onclick="openInstallModal()" class="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all">
-          <i class="fa-solid fa-laptop-code"></i>
-          <span>Install Web App</span>
+        <button id="pwa-install-btn" onclick="openInstallModal()" class="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all">
+          <i class="fa-solid fa-arrow-down-to-bracket text-brand-400"></i>
+          <span id="pwa-btn-text">Install Web App</span>
         </button>
 
         <!-- Account Switcher Quick Pill (STRICTLY HIDDEN WHEN LOGGED OUT) -->
@@ -452,9 +494,19 @@
           </div>
           <div>
             <h3 class="text-base font-bold text-white">Standalone Web App (PWA)</h3>
-            <p class="text-xs text-slate-400">Runs as an isolated desktop application in its own window runtime.</p>
+            <p class="text-xs text-slate-400">Installs directly to your device OS via the browser address bar prompt.</p>
           </div>
         </div>
+
+        <!-- Address Bar Install Indicator Banner -->
+        <div id="address-bar-banner" class="p-3 bg-brand-950/60 border border-brand-500/40 rounded-xl flex items-center gap-3">
+          <i class="fa-solid fa-circle-info text-brand-400 text-lg"></i>
+          <div class="text-xs text-slate-300">
+            <p class="font-semibold text-brand-300">Browser Address Bar Installation</p>
+            <p class="text-[11px] text-slate-400">Click below or look for the <strong>Install Icon</strong> (<i class="fa-solid fa-circle-down"></i>) in your browser address bar above.</p>
+          </div>
+        </div>
+
         <div class="p-3 bg-slate-900/90 border border-slate-800 rounded-xl space-y-2 text-xs text-slate-300">
           <div class="flex items-center gap-2 text-indigo-300 font-semibold">
             <i class="fa-solid fa-circle-check"></i> Web App Characteristics:
@@ -465,8 +517,8 @@
             <li>Requests isolated block call permissions for local scripts.</li>
           </ul>
         </div>
-        <button onclick="openPermissionModal('sample-python')" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-2">
-          <i class="fa-solid fa-arrow-down-to-square"></i> Install Standalone Web App Sandbox
+        <button id="trigger-native-install-btn" onclick="triggerNativeInstall()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-2">
+          <i class="fa-solid fa-arrow-down-to-square"></i> Trigger Address Bar Install Prompt
         </button>
       </div>
     </div>
@@ -536,6 +588,44 @@
   </div>
 
   <script>
+    let deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Prevent standard mini-infobar on mobile and capture event
+      e.preventDefault();
+      deferredPrompt = e;
+
+      // Highlight the Install button in header
+      const btnText = document.getElementById('pwa-btn-text');
+      if (btnText) {
+        btnText.textContent = 'Install Web App (Address Bar Ready)';
+      }
+      logAudit('PWA manifest validated: Address bar install prompt available.');
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredPrompt = null;
+      showToast('Web App installed successfully!', 'success');
+      logAudit('NexusAccount PWA installed on device.');
+    });
+
+    function triggerNativeInstall() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            showToast('Installing Web App...', 'success');
+          } else {
+            showToast('Installation cancelled from prompt.', 'info');
+          }
+          deferredPrompt = null;
+        });
+      } else {
+        showToast('To install: Click the Install Icon in your browser address bar at the top right!', 'info');
+      }
+      closeInstallModal();
+    }
+
     // System State Store
     let registeredUsers = [
       {
