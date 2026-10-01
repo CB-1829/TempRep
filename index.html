@@ -100,10 +100,8 @@
 </head>
 <body class="min-h-full font-sans antialiased flex flex-col justify-between selection:bg-brand-500 selection:text-white bg-slate-950 text-slate-100">
 
-  <!-- Toast Notification Container -->
   <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
 
-  <!-- Top Navigation Header -->
   <header class="w-full border-b border-slate-800 bg-slate-900/90 backdrop-blur-md sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-3 cursor-pointer" onclick="navigateHome()">
@@ -117,10 +115,10 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <!-- Standalone Web App Installer Action Button -->
+        <!-- Address Bar Web App Installer Action Button -->
         <button id="pwa-install-btn" onclick="openInstallModal()" class="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all">
           <i class="fa-solid fa-arrow-down-to-bracket text-brand-400"></i>
-          <span id="pwa-btn-text">Install Web App</span>
+          <span id="pwa-btn-text">Install App in Address Bar</span>
         </button>
 
         <!-- Account Switcher Quick Pill (STRICTLY HIDDEN WHEN LOGGED OUT) -->
@@ -155,6 +153,19 @@
       </div>
     </div>
   </header>
+
+  <div id="on-start-command-banner" class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-3">
+    <div class="bg-slate-900/90 border border-brand-500/40 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between font-mono text-xs shadow-lg gap-2">
+      <div class="flex items-center space-x-3">
+        <span class="px-2 py-0.5 rounded bg-brand-500/20 text-brand-400 font-bold border border-brand-500/30 uppercase text-[10px]">ON START COMMAND</span>
+        <span class="text-slate-200 font-semibold" id="on-start-cmd-text">browser.add_install_button_to_address_bar()</span>
+      </div>
+      <div class="flex items-center space-x-2 text-emerald-400 text-[11px]">
+        <i class="fa-solid fa-circle-check"></i>
+        <span>Address Bar Install Button Action Registered</span>
+      </div>
+    </div>
+  </div>
 
   <main class="flex-grow flex items-center justify-center p-4 sm:p-6 lg:p-8">
     
@@ -210,7 +221,7 @@
         <form id="signup-form" onsubmit="handleSignup(event)" class="space-y-4 hidden">
           <div class="text-center space-y-1">
             <h2 class="text-2xl font-bold text-white tracking-tight">Create Account</h2>
-            <p class="text-xs text-slate-400">Register your primary Nexus address and identity</p>
+            <p class="text-xs text-slate-400">Register your primary Nexus email address and identity</p>
           </div>
 
           <div class="space-y-3">
@@ -239,7 +250,6 @@
                   <i class="fa-solid fa-eye text-sm"></i>
                 </button>
               </div>
-              <!-- Strength Indicator -->
               <div class="mt-1.5 flex items-center gap-2">
                 <div class="flex-grow h-1 bg-slate-800 rounded-full overflow-hidden">
                   <div id="strength-bar" class="h-full bg-red-500 w-0 transition-all duration-300"></div>
@@ -299,7 +309,7 @@
       </div>
     </section>
 
-    <!-- 3. DASHBOARD & CAPABILITY PLATFORM SECTION -->
+    <!-- 3. DASHBOARD SECTION -->
     <section id="dashboard-section" class="w-full max-w-5xl hidden space-y-6">
       
       <!-- User Profile Header Card -->
@@ -330,12 +340,9 @@
         </div>
       </div>
 
-      <!-- Dashboard Tabs Navigation -->
+      <!-- Dashboard Tabs Navigation (REMOVED Capability Blocks & Apps button completely) -->
       <div class="border-b border-slate-800 flex space-x-6 text-sm">
-        <button id="tab-btn-apps" onclick="setDashboardTab('apps')" class="pb-3 border-b-2 border-brand-500 text-brand-400 font-semibold flex items-center gap-2">
-          <i class="fa-solid fa-cubes"></i> Capability Blocks & Apps
-        </button>
-        <button id="tab-btn-profile" onclick="setDashboardTab('profile')" class="pb-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2">
+        <button id="tab-btn-profile" onclick="setDashboardTab('profile')" class="pb-3 border-b-2 border-brand-500 text-brand-400 font-semibold flex items-center gap-2">
           <i class="fa-solid fa-id-card"></i> Profile Settings
         </button>
         <button id="tab-btn-audit" onclick="setDashboardTab('audit')" class="pb-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2">
@@ -343,108 +350,8 @@
         </button>
       </div>
 
-      <!-- TAB 1: CAPABILITY BLOCKS & SANDBOX TERMINAL -->
-      <div id="tab-content-apps" class="space-y-6">
-        
-        <!-- App Presets Catalog -->
-        <div>
-          <h3 class="text-sm font-bold text-white uppercase font-mono tracking-wider mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-store text-brand-400"></i> Available Capability Block Presets
-          </h3>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            
-            <div class="glass-card p-4 rounded-xl border border-slate-800 space-y-3 hover:border-brand-500/50 transition-all">
-              <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
-                  <i class="fa-brands fa-python text-lg"></i>
-                </div>
-                <div>
-                  <h4 class="text-xs font-bold text-white">Auto-Sync Python Bot</h4>
-                  <span class="text-[10px] font-mono text-amber-400">Python Script Block</span>
-                </div>
-              </div>
-              <p class="text-[11px] text-slate-400">Requests profile sync and account status read permissions.</p>
-              <button onclick="openPermissionModal('python-bot')" class="w-full py-1.5 bg-brand-600/20 hover:bg-brand-600 text-brand-300 hover:text-white rounded-lg text-xs font-semibold transition-all">
-                Grant Permissions & Install
-              </button>
-            </div>
-
-            <div class="glass-card p-4 rounded-xl border border-slate-800 space-y-3 hover:border-amber-500/50 transition-all">
-              <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center">
-                  <i class="fa-brands fa-js text-lg"></i>
-                </div>
-                <div>
-                  <h4 class="text-xs font-bold text-white">JS Dashboard Extension</h4>
-                  <span class="text-[10px] font-mono text-orange-400">JavaScript Widget Block</span>
-                </div>
-              </div>
-              <p class="text-[11px] text-slate-400">Requests user profile details and notification permissions.</p>
-              <button onclick="openPermissionModal('js-widget')" class="w-full py-1.5 bg-brand-600/20 hover:bg-brand-600 text-brand-300 hover:text-white rounded-lg text-xs font-semibold transition-all">
-                Grant Permissions & Install
-              </button>
-            </div>
-
-            <div class="glass-card p-4 rounded-xl border border-slate-800 space-y-3 hover:border-red-500/50 transition-all">
-              <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center">
-                  <i class="fa-brands fa-html5 text-lg"></i>
-                </div>
-                <div>
-                  <h4 class="text-xs font-bold text-white">HTML Custom Portal</h4>
-                  <span class="text-[10px] font-mono text-red-400">HTML Layout Block</span>
-                </div>
-              </div>
-              <p class="text-[11px] text-slate-400">Requests custom UI rendering and profile update permissions.</p>
-              <button onclick="openPermissionModal('html-dash')" class="w-full py-1.5 bg-brand-600/20 hover:bg-brand-600 text-brand-300 hover:text-white rounded-lg text-xs font-semibold transition-all">
-                Grant Permissions & Install
-              </button>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- Installed Capability Blocks -->
-        <div>
-          <h3 class="text-sm font-bold text-white uppercase font-mono tracking-wider mb-3">Installed Blocks for Active User</h3>
-          <div id="installed-apps-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Dynamically populated -->
-          </div>
-        </div>
-
-        <!-- Sandbox Strict Execution Terminal -->
-        <div class="glass-card rounded-xl border border-slate-800 overflow-hidden">
-          <div class="bg-slate-900 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
-              <span class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span>
-              <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
-              <span class="text-xs font-mono text-slate-300 font-bold ml-2">Capability Sandbox Terminal</span>
-            </div>
-            <span class="text-[10px] font-mono text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded border border-brand-500/20">Strict Security Enforcer</span>
-          </div>
-
-          <div class="p-4 space-y-3">
-            <div class="flex flex-col sm:flex-row gap-2">
-              <select id="terminal-app-select" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-brand-500">
-                <!-- Select installed block -->
-              </select>
-              <input type="text" id="terminal-input" placeholder="Enter command e.g. account.read_email" class="flex-grow bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 font-mono focus:outline-none focus:border-brand-500">
-              <button onclick="executeTerminalCommand()" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all">
-                <i class="fa-solid fa-play text-[10px]"></i> Run Call
-              </button>
-            </div>
-
-            <div id="terminal-output" class="bg-slate-950 p-3 rounded-lg font-mono text-xs text-slate-300 min-h-[120px] max-h-[180px] overflow-y-auto space-y-1 border border-slate-800">
-              <p class="text-slate-500">// Terminal initialized. Select an installed block and issue allowed commands.</p>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- TAB 2: PROFILE SETTINGS -->
-      <div id="tab-content-profile" class="glass-card p-6 rounded-2xl border border-slate-800 space-y-4 hidden max-w-xl">
+      <!-- TAB 1: PROFILE SETTINGS -->
+      <div id="tab-content-profile" class="glass-card p-6 rounded-2xl border border-slate-800 space-y-4 max-w-xl">
         <h3 class="text-base font-bold text-white">Manage Profile Details</h3>
         
         <div class="space-y-3">
@@ -463,7 +370,7 @@
         </button>
       </div>
 
-      <!-- TAB 3: AUDIT LOG -->
+      <!-- TAB 2: AUDIT LOG -->
       <div id="tab-content-audit" class="space-y-3 hidden">
         <h3 class="text-sm font-bold text-white uppercase font-mono tracking-wider">Security & Execution Log</h3>
         <div id="audit-logs-list" class="space-y-2 max-h-80 overflow-y-auto pr-1">
@@ -480,7 +387,7 @@
     <div class="glass-card rounded-2xl max-w-lg w-full overflow-hidden app-window-shadow border border-slate-700/80">
       <div class="bg-slate-900 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
         <span class="text-xs font-mono text-slate-300 font-bold flex items-center gap-2">
-          <i class="fa-solid fa-download text-brand-400"></i> Web App Installer
+          <i class="fa-solid fa-download text-brand-400"></i> Address Bar Web App Installer
         </span>
         <button onclick="closeInstallModal()" class="text-slate-400 hover:text-white text-xs">
           <i class="fa-solid fa-xmark"></i>
@@ -493,8 +400,8 @@
             <i class="fa-solid fa-laptop-code"></i>
           </div>
           <div>
-            <h3 class="text-base font-bold text-white">Standalone Web App (PWA)</h3>
-            <p class="text-xs text-slate-400">Installs directly to your device OS via the browser address bar prompt.</p>
+            <h3 class="text-base font-bold text-white">Standalone Address Bar Web App</h3>
+            <p class="text-xs text-slate-400">Installs directly to your OS address bar using standard PWA triggers.</p>
           </div>
         </div>
 
@@ -502,21 +409,11 @@
         <div id="address-bar-banner" class="p-3 bg-brand-950/60 border border-brand-500/40 rounded-xl flex items-center gap-3">
           <i class="fa-solid fa-circle-info text-brand-400 text-lg"></i>
           <div class="text-xs text-slate-300">
-            <p class="font-semibold text-brand-300">Browser Address Bar Installation</p>
-            <p class="text-[11px] text-slate-400">Click below or look for the <strong>Install Icon</strong> (<i class="fa-solid fa-circle-down"></i>) in your browser address bar above.</p>
+            <p class="font-semibold text-brand-300">Browser Address Bar Installation Command</p>
+            <p class="text-[11px] text-slate-400">On startup command: <code class="text-brand-300 font-mono">browser.add_install_button_to_address_bar()</code></p>
           </div>
         </div>
 
-        <div class="p-3 bg-slate-900/90 border border-slate-800 rounded-xl space-y-2 text-xs text-slate-300">
-          <div class="flex items-center gap-2 text-indigo-300 font-semibold">
-            <i class="fa-solid fa-circle-check"></i> Web App Characteristics:
-          </div>
-          <ul class="list-disc pl-5 space-y-1 text-slate-400 text-[11px]">
-            <li>Runs in an isolated window sandbox independent of browser tabs.</li>
-            <li>Manages local app sessions and multi-account state natively.</li>
-            <li>Requests isolated block call permissions for local scripts.</li>
-          </ul>
-        </div>
         <button id="trigger-native-install-btn" onclick="triggerNativeInstall()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-2">
           <i class="fa-solid fa-arrow-down-to-square"></i> Trigger Address Bar Install Prompt
         </button>
@@ -524,57 +421,7 @@
     </div>
   </div>
 
-  <!-- MODAL 2: PERMISSION GRANT MODAL -->
-  <div id="permission-grant-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="glass-card rounded-2xl max-w-md w-full overflow-hidden app-window-shadow border border-slate-700/80">
-      <div class="bg-slate-900 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
-        <span class="text-xs font-mono text-slate-300 font-bold flex items-center gap-2">
-          <i class="fa-solid fa-shield-halved text-brand-400"></i> Capability Block Authorization
-        </span>
-        <button onclick="closePermissionModal()" class="text-slate-400 hover:text-white text-xs">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-
-      <div class="p-6 space-y-4">
-        <div class="text-center space-y-1">
-          <h3 id="modal-app-title" class="text-lg font-bold text-white">App Title</h3>
-          <p id="modal-app-lang" class="text-xs font-mono text-brand-400 uppercase">Python / JS Script</p>
-          <p id="modal-app-desc" class="text-xs text-slate-400">Requests the following specific capability permissions.</p>
-        </div>
-
-        <!-- Account Context Prompt in Modal -->
-        <div class="p-3 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between">
-          <div class="flex items-center space-x-2.5">
-            <div id="modal-user-avatar" class="w-7 h-7 rounded-lg bg-brand-600 text-white font-bold flex items-center justify-center text-xs">A</div>
-            <div>
-              <p class="text-[10px] text-slate-400 font-mono">Granting for Account:</p>
-              <p id="modal-user-email" class="text-xs font-bold text-slate-200">alex@nexus.com</p>
-            </div>
-          </div>
-          <button onclick="openAccountChooserFromModal()" class="text-[10px] text-brand-400 hover:underline font-semibold">Change Account</button>
-        </div>
-
-        <div class="space-y-2">
-          <p class="text-xs font-bold text-slate-300 uppercase font-mono">Declared Capabilities:</p>
-          <div id="modal-capabilities-list" class="space-y-2 max-h-40 overflow-y-auto">
-            <!-- Capabilities injected -->
-          </div>
-        </div>
-
-        <div class="flex gap-2 pt-2">
-          <button onclick="closePermissionModal()" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold text-xs transition-all">
-            Deny
-          </button>
-          <button onclick="confirmAppInstall()" class="flex-1 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-semibold text-xs shadow-lg shadow-brand-500/20 transition-all">
-            Allow & Install Block
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL 3: FORGOT PASSWORD MODAL -->
+  <!-- MODAL 2: FORGOT PASSWORD MODAL -->
   <div id="forgot-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="glass-card rounded-2xl max-w-sm w-full p-6 space-y-4 border border-slate-800">
       <h3 class="text-base font-bold text-white">Reset Password</h3>
@@ -590,23 +437,34 @@
   <script>
     let deferredPrompt = null;
 
+    // ON START: Execute command to register address bar install button
+    function executeOnStartCommands() {
+      const startupCommand = 'browser.add_install_button_to_address_bar()';
+      
+      // Update UI On Start Banner
+      const cmdTextEl = document.getElementById('on-start-cmd-text');
+      if (cmdTextEl) {
+        cmdTextEl.textContent = startupCommand;
+      }
+
+      logAudit(`[ON START COMMAND EXECUTED]: ${startupCommand}`);
+    }
+
     window.addEventListener('beforeinstallprompt', (e) => {
-      // Prevent standard mini-infobar on mobile and capture event
       e.preventDefault();
       deferredPrompt = e;
 
-      // Highlight the Install button in header
       const btnText = document.getElementById('pwa-btn-text');
       if (btnText) {
-        btnText.textContent = 'Install Web App (Address Bar Ready)';
+        btnText.textContent = 'Install App (Address Bar Ready)';
       }
-      logAudit('PWA manifest validated: Address bar install prompt available.');
+      logAudit('PWA Manifest validated: Address bar install prompt available.');
     });
 
     window.addEventListener('appinstalled', () => {
       deferredPrompt = null;
       showToast('Web App installed successfully!', 'success');
-      logAudit('NexusAccount PWA installed on device.');
+      logAudit('NexusAccount PWA installed on device via address bar prompt.');
     });
 
     function triggerNativeInstall() {
@@ -621,12 +479,12 @@
           deferredPrompt = null;
         });
       } else {
-        showToast('To install: Click the Install Icon in your browser address bar at the top right!', 'info');
+        showToast('Click the Install Icon in your browser address bar at the top right!', 'info');
       }
       closeInstallModal();
     }
 
-    // System State Store
+    // System User Store
     let registeredUsers = [
       {
         username: 'admin',
@@ -642,74 +500,16 @@
 
     // Active User Sessions (Starts strictly as NULL so user is properly logged out)
     let currentUser = null;
-    let pendingModalAppKey = null;
-
-    // Available Capability App Templates & Presets
-    const APPS_CATALOG = {
-      'python-bot': {
-        key: 'python-bot',
-        name: 'Nexus Auto-Sync Python Bot',
-        lang: 'Python',
-        icon: 'fa-brands fa-python',
-        iconColor: 'from-amber-500 to-yellow-600',
-        desc: 'Automates profile data verification and syncs account status via python script blocks.',
-        capabilities: [
-          { name: 'account.read_email', type: 'Scope', desc: 'Read user account email address' },
-          { name: 'account.get_status', type: 'Command', desc: 'Call `nexus.get_status()` python method' },
-          { name: 'env.SYNC_INTERVAL', type: 'Variable', desc: 'Access variable `SYNC_INTERVAL=300`' }
-        ],
-        allowedCommands: ['account.read_email', 'account.get_status']
-      },
-      'js-widget': {
-        key: 'js-widget',
-        name: 'JS Dashboard Extension',
-        lang: 'JavaScript',
-        icon: 'fa-brands fa-js',
-        iconColor: 'from-amber-400 to-orange-500',
-        desc: 'Embedded JS widget block for displaying realtime security indicators and alerts.',
-        capabilities: [
-          { name: 'account.read_profile', type: 'Scope', desc: 'Read username & avatar details' },
-          { name: 'account.send_notification', type: 'Command', desc: 'Call `NexusAPI.notify(msg)` JS method' },
-          { name: 'ui.THEME_COLOR', type: 'Variable', desc: 'Read/Write variable `THEME_COLOR`' }
-        ],
-        allowedCommands: ['account.read_profile', 'account.send_notification']
-      },
-      'html-dash': {
-        key: 'html-dash',
-        name: 'HTML Custom Card Portal',
-        lang: 'HTML/CSS',
-        icon: 'fa-brands fa-html5',
-        iconColor: 'from-orange-500 to-red-600',
-        desc: 'Custom HTML layout block for rendering formatted user dashboards.',
-        capabilities: [
-          { name: 'account.render_card', type: 'Scope', desc: 'Render HTML interface block' },
-          { name: 'account.edit_profile', type: 'Command', desc: 'Call `account.edit_profile` update handler' }
-        ],
-        allowedCommands: ['account.render_card', 'account.edit_profile']
-      },
-      'sample-python': {
-        key: 'sample-python',
-        name: 'Custom Script Installer',
-        lang: 'Python / JS',
-        icon: 'fa-solid fa-code',
-        iconColor: 'from-indigo-500 to-purple-600',
-        desc: 'Generic script package requesting standard Nexus API execution permissions.',
-        capabilities: [
-          { name: 'account.read_email', type: 'Scope', desc: 'Read primary account address' },
-          { name: 'account.get_status', type: 'Command', desc: 'Query security status flags' }
-        ],
-        allowedCommands: ['account.read_email', 'account.get_status']
-      }
-    };
-
-    // Installed apps per user session
-    let installedUserApps = {};
 
     window.onload = function() {
-      currentUser = null; // Unauthenticated default
+      currentUser = null; // Unauthenticated default on startup
       showAuthView('login');
+      
+      // Execute On Start command
+      executeOnStartCommands();
+      
       updateUI();
-      logAudit('System started in secure logged-out state.');
+      logAudit('System booted in secure unauthenticated state.');
     };
 
     function navigateHome() {
@@ -735,8 +535,21 @@
       document.getElementById('account-chooser-section').classList.add('hidden');
       document.getElementById('dashboard-section').classList.add('hidden');
       document.getElementById('auth-section').classList.remove('hidden');
-      switchTab(mode);
+      switchAuthForm(mode);
       updateUI();
+    }
+
+    function switchAuthForm(mode) {
+      const loginForm = document.getElementById('login-form');
+      const signupForm = document.getElementById('signup-form');
+
+      if (mode === 'login') {
+        loginForm.classList.remove('hidden');
+        signupForm.classList.add('hidden');
+      } else {
+        loginForm.classList.add('hidden');
+        signupForm.classList.remove('hidden');
+      }
     }
 
     function openAccountChooser() {
@@ -793,9 +606,6 @@
       const user = registeredUsers.find(u => u.address === address);
       if (user) {
         currentUser = user;
-        if (!installedUserApps[currentUser.address]) {
-          installedUserApps[currentUser.address] = [];
-        }
         showToast(`Switched account to @${currentUser.username}`, 'success');
         showDashboard();
       }
@@ -814,226 +624,10 @@
         document.getElementById('user-display-address').querySelector('span').textContent = currentUser.address;
         document.getElementById('edit-username').value = currentUser.username;
         document.getElementById('edit-address').value = currentUser.address;
-
-        renderInstalledAppsGrid();
-        renderTerminalAppSelect();
       } else {
         pill.classList.add('hidden');
         const menu = document.getElementById('account-dropdown');
         if (menu) menu.classList.add('hidden');
-      }
-    }
-
-    function renderInstalledAppsGrid() {
-      const grid = document.getElementById('installed-apps-grid');
-      const userApps = installedUserApps[currentUser.address] || [];
-
-      if (userApps.length === 0) {
-        grid.innerHTML = `
-          <div class="col-span-full p-8 text-center bg-slate-900/40 rounded-xl border border-slate-800">
-            <i class="fa-solid fa-cubes text-3xl text-slate-600 mb-2"></i>
-            <p class="text-sm text-slate-400 font-semibold">No Capability Blocks Installed</p>
-            <p class="text-xs text-slate-500 mt-1">Use the presets above or install an app to grant specific block capabilities.</p>
-          </div>
-        `;
-        return;
-      }
-
-      grid.innerHTML = '';
-      userApps.forEach(app => {
-        const card = document.createElement('div');
-        card.className = 'bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-3';
-        
-        let capListHtml = app.capabilities.map(c => 
-          `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
-            <i class="fa-solid fa-check text-emerald-400 mr-1 text-[8px]"></i>${c.name}
-          </span>`
-        ).join(' ');
-
-        card.innerHTML = `
-          <div class="flex items-start justify-between gap-2">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-gradient-to-tr ${app.iconColor} text-white flex items-center justify-center text-lg">
-                <i class="${app.icon}"></i>
-              </div>
-              <div>
-                <h4 class="text-sm font-bold text-white">${app.name}</h4>
-                <span class="text-[10px] uppercase font-mono text-slate-400">${app.lang} Block</span>
-              </div>
-            </div>
-            <button onclick="uninstallApp('${app.key}')" class="text-slate-500 hover:text-red-400 text-xs">
-              <i class="fa-solid fa-trash-can"></i>
-            </button>
-          </div>
-          <p class="text-xs text-slate-400 leading-relaxed">${app.desc}</p>
-          <div class="pt-1 flex flex-wrap gap-1">
-            ${capListHtml}
-          </div>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    function renderTerminalAppSelect() {
-      const select = document.getElementById('terminal-app-select');
-      const userApps = installedUserApps[currentUser.address] || [];
-      select.innerHTML = '';
-
-      if (userApps.length === 0) {
-        select.innerHTML = `<option value="">No Installed Blocks</option>`;
-        return;
-      }
-
-      userApps.forEach(app => {
-        const opt = document.createElement('option');
-        opt.value = app.key;
-        opt.textContent = `${app.name} (${app.lang})`;
-        select.appendChild(opt);
-      });
-    }
-
-    function openPermissionModal(appKey) {
-      closeInstallModal();
-      pendingModalAppKey = appKey;
-      const app = APPS_CATALOG[appKey];
-      if (!app) return;
-
-      if (!currentUser) {
-        showToast('Please sign in or create an account first to grant permissions.', 'info');
-        showAuthView('login');
-        return;
-      }
-
-      document.getElementById('modal-app-title').textContent = app.name;
-      document.getElementById('modal-app-lang').textContent = app.lang;
-      document.getElementById('modal-app-desc').textContent = app.desc;
-      document.getElementById('modal-user-email').textContent = currentUser.address;
-      document.getElementById('modal-user-avatar').textContent = currentUser.username.charAt(0).toUpperCase();
-
-      const capContainer = document.getElementById('modal-capabilities-list');
-      capContainer.innerHTML = '';
-
-      app.capabilities.forEach(cap => {
-        const div = document.createElement('div');
-        div.className = 'p-2.5 bg-slate-900/90 border border-slate-800 rounded-lg flex items-center justify-between';
-        div.innerHTML = `
-          <div class="flex items-center space-x-2.5">
-            <i class="fa-solid fa-cube text-brand-400 text-sm"></i>
-            <div>
-              <p class="font-mono font-bold text-slate-200 text-xs">${cap.name}</p>
-              <p class="text-[11px] text-slate-400">${cap.desc}</p>
-            </div>
-          </div>
-          <span class="px-2 py-0.5 bg-brand-500/20 text-brand-300 text-[10px] font-mono rounded uppercase">${cap.type}</span>
-        `;
-        capContainer.appendChild(div);
-      });
-
-      document.getElementById('permission-grant-modal').classList.remove('hidden');
-    }
-
-    function closePermissionModal() {
-      document.getElementById('permission-grant-modal').classList.add('hidden');
-      pendingModalAppKey = null;
-    }
-
-    function openAccountChooserFromModal() {
-      closePermissionModal();
-      openAccountChooser();
-    }
-
-    function confirmAppInstall() {
-      if (!pendingModalAppKey || !currentUser) return;
-
-      const app = APPS_CATALOG[pendingModalAppKey];
-      if (!installedUserApps[currentUser.address]) {
-        installedUserApps[currentUser.address] = [];
-      }
-
-      const exists = installedUserApps[currentUser.address].some(a => a.key === app.key);
-      if (!exists) {
-        installedUserApps[currentUser.address].push(app);
-        showToast(`Granted permissions & installed ${app.name}!`, 'success');
-        logAudit(`Installed App Block [${app.name}] for ${currentUser.address}`);
-      } else {
-        showToast(`Permissions already granted for ${app.name}`, 'info');
-      }
-
-      closePermissionModal();
-      showDashboard();
-    }
-
-    function uninstallApp(appKey) {
-      if (!currentUser) return;
-      installedUserApps[currentUser.address] = installedUserApps[currentUser.address].filter(a => a.key !== appKey);
-      showToast('Capability block uninstalled & permissions revoked', 'info');
-      logAudit(`Revoked permissions for block [${appKey}]`);
-      updateUI();
-    }
-
-    function executeTerminalCommand() {
-      const appKey = document.getElementById('terminal-app-select').value;
-      const cmdInput = document.getElementById('terminal-input').value.trim();
-
-      if (!appKey) {
-        showToast('No block app selected', 'error');
-        return;
-      }
-
-      if (!cmdInput) return;
-
-      const userApps = installedUserApps[currentUser.address] || [];
-      const app = userApps.find(a => a.key === appKey);
-
-      if (!app) {
-        printTerminalLine(`[ERROR] Block [${appKey}] is not installed or lacks permission.`, 'text-red-400');
-        return;
-      }
-
-      printTerminalLine(`> Executing block command: "${cmdInput}"...`, 'text-brand-300');
-
-      const matchedCap = app.allowedCommands.find(allowed => cmdInput.toLowerCase().includes(allowed.toLowerCase()));
-
-      if (matchedCap) {
-        if (matchedCap === 'account.read_email') {
-          printTerminalLine(`[SUCCESS] Block output -> Account Email: ${currentUser.address}`, 'text-emerald-400');
-        } else if (matchedCap === 'account.get_status') {
-          printTerminalLine(`[SUCCESS] Block output -> Status: Active | Security Score: 95%`, 'text-emerald-400');
-        } else if (matchedCap === 'account.read_profile') {
-          printTerminalLine(`[SUCCESS] Block output -> User: ${currentUser.username} (${currentUser.address})`, 'text-emerald-400');
-        } else if (matchedCap === 'account.send_notification') {
-          printTerminalLine(`[SUCCESS] Block output -> Notification dispatched via JS API block!`, 'text-emerald-400');
-        } else {
-          printTerminalLine(`[SUCCESS] Executed authorized block action [${matchedCap}]`, 'text-emerald-400');
-        }
-        logAudit(`Executed block action [${matchedCap}] via ${app.name}`);
-      } else {
-        printTerminalLine(`[SECURITY BLOCK] Execution Denied! Command "${cmdInput}" is NOT in declared capability list for ${app.name}.`, 'text-red-400 font-bold');
-        logAudit(`SECURITY DENIAL: Block command [${cmdInput}] attempted without scope authorization.`);
-      }
-
-      document.getElementById('terminal-input').value = '';
-    }
-
-    function printTerminalLine(msg, textClass) {
-      const output = document.getElementById('terminal-output');
-      const p = document.createElement('p');
-      p.className = `leading-relaxed ${textClass}`;
-      p.textContent = msg;
-      output.appendChild(p);
-      output.scrollTop = output.scrollHeight;
-    }
-
-    function switchTab(mode) {
-      const loginForm = document.getElementById('login-form');
-      const signupForm = document.getElementById('signup-form');
-
-      if (mode === 'login') {
-        loginForm.classList.remove('hidden');
-        signupForm.classList.add('hidden');
-      } else {
-        loginForm.classList.add('hidden');
-        signupForm.classList.remove('hidden');
       }
     }
 
@@ -1048,9 +642,6 @@
 
       if (user) {
         currentUser = user;
-        if (!installedUserApps[currentUser.address]) {
-          installedUserApps[currentUser.address] = [];
-        }
         showToast(`Welcome back, ${currentUser.username}!`, 'success');
         logAudit(`User @${currentUser.username} logged in.`);
         showDashboard();
@@ -1080,7 +671,6 @@
       const newUser = { address, username, password };
       registeredUsers.push(newUser);
       currentUser = newUser;
-      installedUserApps[currentUser.address] = [ APPS_CATALOG['python-bot'] ];
 
       showToast('Account created successfully!', 'success');
       logAudit(`New account created: @${username} (${address})`);
@@ -1098,14 +688,8 @@
         return;
       }
 
-      const oldAddr = currentUser.address;
       currentUser.username = newUsername;
       currentUser.address = newAddress;
-
-      if (oldAddr !== newAddress) {
-        installedUserApps[newAddress] = installedUserApps[oldAddr] || [];
-        delete installedUserApps[oldAddr];
-      }
 
       showToast('Profile updated successfully!', 'success');
       logAudit(`Profile details updated for @${currentUser.username}`);
@@ -1121,7 +705,7 @@
     }
 
     function setDashboardTab(tab) {
-      ['apps', 'profile', 'audit'].forEach(t => {
+      ['profile', 'audit'].forEach(t => {
         document.getElementById(`tab-content-${t}`).classList.add('hidden');
         document.getElementById(`tab-btn-${t}`).className = 'pb-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2';
       });
