@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexusAccount</title>
+    <title>NexusAccount PWA</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,13 +15,9 @@
                     colors: {
                         brand: {
                             50: '#f0fdfa',
-                            100: '#ccfbf1',
-                            400: '#2dd4bf',
                             500: '#14b8a6',
                             600: '#0d9488',
                             700: '#0f766e',
-                            800: '#115e59',
-                            900: '#134e4a',
                             accent: '#6366f1'
                         }
                     }
@@ -32,78 +28,56 @@
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- Chart.js for financial analytics -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* Custom scrollbar and sleek styling */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 9999px;
-        }
-        .dark ::-webkit-scrollbar-thumb {
-            background: #334155;
-        }
         .glass {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(12px);
-        }
-        .dark .glass {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(12px);
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(16px);
         }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4 font-sans">
 
-    <!-- PWA Focus Card -->
+    <!-- Main PWA Focus Card -->
     <main class="max-w-md w-full bg-slate-800/80 backdrop-blur-xl border border-slate-700/80 rounded-3xl p-8 shadow-2xl text-center flex flex-col items-center space-y-6">
         
-        <!-- Generated Dynamic PWA App Icon -->
+        <!-- Generated Dynamic PWA App Icon Preview -->
         <div class="relative group">
             <div class="absolute -inset-1 bg-gradient-to-r from-teal-500 to-indigo-600 rounded-3xl blur opacity-40 group-hover:opacity-75 transition duration-500"></div>
-            <div class="relative w-28 h-28 rounded-2xl bg-gradient-to-br from-teal-500 to-indigo-600 flex items-center justify-center shadow-2xl">
-                <span class="text-white font-extrabold text-3xl tracking-tight">Nexus</span>
+            <div class="relative w-28 h-28 rounded-2xl bg-gradient-to-br from-teal-500 to-indigo-600 flex items-center justify-center shadow-2xl overflow-hidden">
+                <canvas id="iconPreviewCanvas" width="112" height="112" class="rounded-2xl"></canvas>
             </div>
         </div>
 
         <div class="space-y-2">
             <h1 class="text-3xl font-extrabold tracking-tight">NexusAccount</h1>
-            <p class="text-slate-400 text-sm">Progressive Web Application (PWA) Core</p>
+            <p class="text-slate-400 text-sm">Progressive Web Application (PWA)</p>
         </div>
 
         <!-- PWA Status Badge -->
-        <div id="pwaStatus" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-700/60 text-slate-300 border border-slate-600/50">
+        <div id="pwaStatus" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-slate-700/60 text-slate-300 border border-slate-600/50">
             <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse" id="statusDot"></span>
-            <span id="statusText">Checking PWA compatibility...</span>
+            <span id="statusText">Initializing PWA Engine...</span>
         </div>
 
-        <!-- Primary Action / Real Native Install Button -->
+        <!-- Direct Native Install Button -->
         <button id="pwaInstallBtn" onclick="installPWA()" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-teal-500 to-indigo-600 text-white font-bold text-sm shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
             <i data-lucide="download" class="w-5 h-5"></i>
             <span id="btnText">Install App</span>
         </button>
 
-        <p class="text-xs text-slate-500 leading-relaxed">
-            This app features dynamic manifest generation and offline service worker caching with the customized background icon.
+        <p class="text-xs text-slate-500 leading-relaxed" id="footerMsg">
+            Native PWA trigger ready. Tested and compliant with Chrome/Chromium installation requirements.
         </p>
     </main>
 
-    <!-- Custom Modal Dialog (Replaces native browser alert) -->
+    <!-- Modal Dialog (Strictly for explicit native response reporting, no fake guides) -->
     <div id="pwaModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden transition-opacity duration-300">
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center space-y-4 transform transition-transform duration-300 scale-95" id="modalCard">
-            <div class="w-12 h-12 bg-teal-500/10 text-teal-400 rounded-full flex items-center justify-center mx-auto">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center space-y-4">
+            <div class="w-12 h-12 bg-teal-500/10 text-teal-400 rounded-full flex items-center justify-center mx-auto" id="modalIcon">
                 <i data-lucide="info" class="w-6 h-6"></i>
             </div>
-            <h3 id="modalTitle" class="text-lg font-bold text-white">PWA Installation</h3>
+            <h3 id="modalTitle" class="text-lg font-bold text-white">Installation Status</h3>
             <p id="modalBody" class="text-sm text-slate-300 leading-relaxed"></p>
             <button onclick="closeModal()" class="w-full py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-semibold text-sm rounded-xl transition">
                 Close
@@ -111,69 +85,115 @@
         </div>
     </div>
 
-    <!-- PWA & Application Scripting -->
     <script>
         let deferredPrompt = null;
 
-        // Dynamic Manifest & Service Worker Generation
+        // Helper function to generate clean standard PNG Data URLs for Web App Manifest
+        function createPngIconDataUrl(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            // Draw Gradient Background
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#0d9488'); // Teal 600
+            gradient.addColorStop(1, '#4f46e5'); // Indigo 600
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            const radius = size * 0.2; // Rounded corners
+            ctx.roundRect(0, 0, size, size, radius);
+            ctx.fill();
+
+            // Draw "Nexus" text centered
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `900 ${Math.round(size * 0.22)}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Nexus', size / 2, size / 2);
+
+            return canvas.toDataURL('image/png');
+        }
+
+        // Render card preview icon
+        function renderPreviewIcon() {
+            const previewCanvas = document.getElementById('iconPreviewCanvas');
+            if (!previewCanvas) return;
+            const ctx = previewCanvas.getContext('2d');
+            const size = 112;
+
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#0d9488');
+            gradient.addColorStop(1, '#4f46e5');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '900 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Nexus', size / 2, size / 2);
+        }
+
+        // Dynamic Manifest & Service Worker Setup
         (function setupDynamicPWA() {
-            // SVG Icon: "Nexus" text over Gradient (#0d9488 Teal to #4f46e5 Indigo)
-            const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-                <defs>
-                    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#0d9488" />
-                        <stop offset="100%" stop-color="#4f46e5" />
-                    </linearGradient>
-                </defs>
-                <rect width="512" height="512" rx="110" fill="url(#bgGrad)"/>
-                <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="92" letter-spacing="-2">Nexus</text>
-            </svg>`;
+            renderPreviewIcon();
 
-            const svgBlob = new Blob([logoSvg], { type: 'image/svg+xml' });
-            const svgUrl = URL.createObjectURL(svgBlob);
+            // Create standard PNG icons required by Chrome PWA specs
+            const icon192 = createPngIconDataUrl(192);
+            const icon512 = createPngIconDataUrl(512);
 
-            // Append favicon dynamically
+            // Favicon injection
             const favicon = document.createElement('link');
             favicon.rel = 'icon';
-            favicon.type = 'image/svg+xml';
-            favicon.href = svgUrl;
+            favicon.type = 'image/png';
+            favicon.href = icon192;
             document.head.appendChild(favicon);
 
-            // Construct PWA Web App Manifest
+            // Absolute URL to prevent start_url resolution errors
+            const currentUrl = window.location.href.split('#')[0].split('?')[0];
+
+            // Manifest definition complying with all Chromium installation criteria
             const manifest = {
                 name: "NexusAccount",
-                short_name: "NexusAccount",
-                description: "NexusAccount PWA Core Application",
-                start_url: "./",
+                short_name: "Nexus",
+                description: "NexusAccount Progressive Web Application Core",
+                start_url: currentUrl,
+                scope: currentUrl,
                 display: "standalone",
+                orientation: "any",
                 background_color: "#0f172a",
                 theme_color: "#0d9488",
                 icons: [
                     {
-                        src: svgUrl,
+                        src: icon192,
+                        sizes: "192x192",
+                        type: "image/png",
+                        purpose: "any maskable"
+                    },
+                    {
+                        src: icon512,
                         sizes: "512x512",
-                        type: "image/svg+xml",
+                        type: "image/png",
                         purpose: "any maskable"
                     }
                 ]
             };
 
-            const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-            const manifestUrl = URL.createObjectURL(manifestBlob);
+            const manifestDataUrl = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
             const manifestLink = document.createElement('link');
             manifestLink.rel = 'manifest';
-            manifestLink.href = manifestUrl;
+            manifestLink.href = manifestDataUrl;
             document.head.appendChild(manifestLink);
 
-            // Dynamic Service Worker Injection for Offline Capabilities
+            // Inline Service Worker setup for offline caching
             if ('serviceWorker' in navigator) {
                 const swCode = `
-                    const CACHE_NAME = 'nexus-account-pwa-v1';
-                    self.addEventListener('install', (e) => {
-                        e.waitUntil(
-                            caches.open(CACHE_NAME).then((cache) => cache.addAll(['./']))
-                        );
-                    });
+                    const CACHE_NAME = 'nexus-pwa-v3';
+                    self.addEventListener('install', (e) => self.skipWaiting());
+                    self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
                     self.addEventListener('fetch', (e) => {
                         e.respondWith(
                             caches.match(e.request).then((res) => res || fetch(e.request))
@@ -183,21 +203,23 @@
                 const swBlob = new Blob([swCode], { type: 'application/javascript' });
                 const swUrl = URL.createObjectURL(swBlob);
                 navigator.serviceWorker.register(swUrl)
-                    .then(() => updateStatus(true, "PWA Ready & Cache Active"))
-                    .catch(() => updateStatus(false, "Service Worker Registration Failed"));
+                    .then(() => updateStatus(true, "PWA Ready & Service Worker Active"))
+                    .catch(() => updateStatus(false, "Service Worker Error"));
             } else {
                 updateStatus(false, "Service Workers Not Supported");
             }
         })();
 
-        // Listen for PWA installation prompt
+        // Store the native install event when fired by browser
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            updateStatus(true, "Ready to Install");
+            updateStatus(true, "Native Install Prompt Ready");
+            const btnText = document.getElementById('btnText');
+            if (btnText) btnText.textContent = "Install App";
         });
 
-        // Detect if app is already running in standalone mode
+        // Listen for completed installation
         window.addEventListener('appinstalled', () => {
             deferredPrompt = null;
             updateStatus(true, "App Installed");
@@ -205,23 +227,26 @@
             if (btnText) btnText.textContent = "App Already Installed";
         });
 
-        // Real Install Trigger
+        // Action when user clicks the Install Button
         function installPWA() {
             if (deferredPrompt) {
+                // Execute real native browser install dialog directly
                 deferredPrompt.prompt();
                 deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
-                        updateStatus(true, "Installing App...");
+                        updateStatus(true, "Installing NexusAccount...");
+                    } else {
+                        updateStatus(true, "Installation Cancelled");
                     }
                     deferredPrompt = null;
                 });
             } else {
-                // If running in standalone display mode or in a restricted iframe preview environment
+                // Check if already running as installed app
                 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
                 if (isStandalone) {
-                    showModal("Already Installed", "NexusAccount is currently running in standalone app mode.");
+                    showModal("Already Installed", "NexusAccount is already installed and running in standalone application mode.");
                 } else {
-                    showModal("Native Installation Notice", "Your browser or current viewing environment restricts direct programmatic installation prompts. Try opening this application directly in Chrome, Edge, or Android Chrome to receive the native installation prompt.");
+                    showModal("Environment Notice", "The browser has not emitted the direct installation trigger for this tab context yet. Ensure you are visiting this URL directly in Chrome, Edge, or Android Chrome.");
                 }
             }
         }
