@@ -10,7 +10,6 @@
   // Insert your Google OAuth Client ID here
   // If using GitHub Actions with secret CLI_ID, inject it during deployment.
   // Otherwise, paste the Client ID string directly here.
-  const CLIENT_ID = 'CLI_ID'; 
   const SCOPES = 'https://www.googleapis.com/auth/gmail.send';
 
   let tokenClient;
@@ -19,7 +18,7 @@
   // Initialize Google Auth
   window.onload = function() {
     tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: CLIENT_ID,
+      client_id: CLI_ID,
       scope: SCOPES,
       callback: (tokenResponse) => {
         if (tokenResponse.access_token) {
