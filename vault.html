@@ -5,6 +5,11 @@
   <button onclick="saveClientId()">Save Key</button>
 </div>
 
+<div style="margin-bottom: 12px;">
+  <button id="authorize_button" onclick="handleAuthClick()">Log in with Gmail</button>
+  <button id="signout_button" onclick="handleSignoutClick()" style="display:none;">Sign Out</button>
+</div>
+
 <div id="account_info" style="display:none; margin-bottom: 12px; border: 1px solid #ccc; padding: 10px; border-radius: 6px; max-width: 300px;">
   <img id="user_avatar" src="" alt="Profile Picture" style="width: 50px; height: 50px; border-radius: 50%; vertical-align: middle; margin-right: 10px;">
   <span style="display: inline-block; vertical-align: middle;">
@@ -13,6 +18,7 @@
   </span>
 </div>
 
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
   let CLIENT_ID = localStorage.getItem('GMAIL_CLIENT_ID') || '';
   const SCOPES = 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';
@@ -62,6 +68,9 @@
     if (!CLIENT_ID) {
       alert('Please enter and save a valid OAuth Client ID first.');
       return;
+    }
+    if (!tokenClient) {
+      initOAuth();
     }
     tokenClient.requestAccessToken();
   }
