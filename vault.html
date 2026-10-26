@@ -3,15 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Google Accounts Manager</title>
+  <title>NexusVault - Google Accounts Manager</title>
+
+  <!-- PWA Manifest Meta Tag -->
+  <link rel="manifest" id="pwa_manifest">
+
+  <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       padding: 24px;
       background-color: #f8fafc;
       color: #0f172a;
-      max-width: 650px;
+      max-width: 680px;
       margin: 0 auto;
     }
 
@@ -19,7 +25,7 @@
       background: white;
       border: 1px solid #e2e8f0;
       border-radius: 10px;
-      padding: 16px;
+      padding: 18px;
       margin-bottom: 16px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
@@ -31,7 +37,7 @@
       margin-bottom: 6px;
     }
 
-    input[type="text"] {
+    input[type="text"], input[type="password"] {
       width: calc(100% - 110px);
       padding: 8px 12px;
       border: 1px solid #cbd5e1;
@@ -41,7 +47,7 @@
     }
 
     button {
-      padding: 8px 16px;
+      padding: 9px 16px;
       border: none;
       border-radius: 6px;
       font-weight: 600;
@@ -122,11 +128,39 @@
       font-size: 0.85rem;
     }
 
+    .role-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      border-radius: 12px;
+      margin-left: 6px;
+    }
+
+    .badge-admin {
+      background-color: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge-user {
+      background-color: #e0f2fe;
+      color: #075985;
+    }
+
     .actions-row {
       display: flex;
       gap: 10px;
       align-items: center;
       margin-bottom: 16px;
+    }
+
+    .pwa-warning-banner {
+      background-color: #fffbebf5;
+      border: 1px solid #fcd34d;
+      color: #92400e;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
     }
 
     .hidden {
@@ -136,36 +170,127 @@
 </head>
 <body>
 
-  <h2>Google Accounts Manager</h2>
+  <h2>NexusVault - Google Accounts Manager</h2>
 
-  <!-- Client ID Config Section -->
-  <div class="card">
-    <label for="client_id_input">Google OAuth Client ID:</label>
-    <div style="display: flex; gap: 8px;">
-      <input type="text" id="client_id_input" placeholder="Enter your OAuth Client ID...">
-      <button class="btn-primary" onclick="saveClientId()">Save Key</button>
+  <!-- PWA Enforcement Notice -->
+  <div id="pwa_gate_banner" class="pwa-warning-banner hidden">
+    <strong>⚠️ PWA Installation Required</strong>
+    <p style="margin: 6px 0 0 0; font-size: 0.9rem;">
+      This app will ONLY authorize and run login operations when opened as an installed PWA. Please install this website as an application using your browser menu ("Install NexusVault" or "Add to Home Screen").
+    </p>
+    <button style="margin-top: 10px;" class="btn-primary" id="install_pwa_btn" onclick="triggerPwaInstall()">Install App</button>
+  </div>
+
+  <div id="app_content">
+    <!-- Security Code Validation Card -->
+    <div class="card">
+      <label for="security_code_input">Security Access Code:</label>
+      <div style="display: flex; gap: 8px;">
+        <input type="password" id="security_code_input" placeholder="Enter Access Code (e.g. 948201 for Admin)...">
+        <button class="btn-primary" onclick="verifyAccessCode()">Unlock</button>
+      </div>
+      <div id="code_status_msg" style="margin-top: 8px; font-size: 0.85rem;"></div>
     </div>
-  </div>
 
-  <!-- Primary Login Controls -->
-  <div class="actions-row">
-    <button id="authorize_button" class="btn-primary" onclick="handleAuthClick()">Log in with Gmail</button>
-    <button id="add_account_button" class="btn-add hidden" onclick="handleAuthClick()">+ Add Account</button>
-    <button id="signout_all_button" class="btn-danger hidden" onclick="handleSignoutAll()">Sign Out All</button>
-  </div>
+    <!-- Client ID Config Section -->
+    <div class="card">
+      <label for="client_id_input">Google OAuth Client ID:</label>
+      <div style="display: flex; gap: 8px;">
+        <input type="text" id="client_id_input" placeholder="Enter your OAuth Client ID...">
+        <button class="btn-primary" onclick="saveClientId()">Save Key</button>
+      </div>
+    </div>
 
-  <!-- Connected Accounts Container -->
-  <div id="accounts_container"></div>
+    <!-- Primary Login Controls -->
+    <div class="actions-row">
+      <button id="authorize_button" class="btn-primary" onclick="handleSingleAccountAuth()">Log in with Gmail (Full Access)</button>
+      <button id="signout_all_button" class="btn-danger hidden" onclick="handleSignoutAll()">Sign Out Active Session</button>
+    </div>
+
+    <!-- Connected Accounts Container -->
+    <div id="accounts_container"></div>
+  </div>
 
   <script>
+    // --- 1. PWA Setup & Enforcement ---
+    let deferredPrompt = null;
+
+    const manifestData = {
+      name: "NexusVault - Google Accounts Manager",
+      short_name: "NexusVault",
+      start_url: "./index.html",
+      display: "standalone",
+      background_color: "#f8fafc",
+      theme_color: "#2563eb",
+      icons: [
+        {
+          src: "https://via.placeholder.com/192/2563eb/ffffff?text=Vault",
+          sizes: "192x192",
+          type: "image/png"
+        }
+      ]
+    };
+
+    const stringManifest = JSON.stringify(manifestData);
+    const blob = new Blob([stringManifest], {type: 'application/json'});
+    const manifestURL = URL.createObjectURL(blob);
+    document.getElementById('pwa_manifest').setAttribute('href', manifestURL);
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('install_pwa_btn').classList.remove('hidden');
+    });
+
+    function isRunningInPWA() {
+      return (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone === true);
+    }
+
+    function triggerPwaInstall() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+          deferredPrompt = null;
+        });
+      } else {
+        alert('To install as PWA: Click your browser menu (⋮ or ⊕) and select "Install" or "Add to Home Screen".');
+      }
+    }
+
+    // --- 2. Codes & Access Control ---
+    // Defined access codes (Custom ADMIN code set to 948201)
+    const ACCESS_CODES = {
+      '948201': { role: 'ADMIN', label: 'Admin Access' },
+      '482910': { role: 'USER', label: 'Standard Access' }
+    };
+
+    let currentSessionRole = localStorage.getItem('NEXUS_CURRENT_ROLE') || null;
+
+    function verifyAccessCode() {
+      const inputVal = document.getElementById('security_code_input').value.trim();
+      const statusMsg = document.getElementById('code_status_msg');
+
+      if (ACCESS_CODES[inputVal]) {
+        currentSessionRole = ACCESS_CODES[inputVal].role;
+        localStorage.setItem('NEXUS_CURRENT_ROLE', currentSessionRole);
+        statusMsg.style.color = '#059669';
+        statusMsg.textContent = `✓ Access granted: ${ACCESS_CODES[inputVal].label}`;
+        renderAccounts();
+      } else {
+        statusMsg.style.color = '#dc2626';
+        statusMsg.textContent = '❌ Invalid access code.';
+      }
+    }
+
+    // --- 3. Google OAuth & Single Account Full Permissions ---
     let CLIENT_ID = localStorage.getItem('GMAIL_CLIENT_ID') || '';
-    const SCOPES = 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';
+    
+    // FULL ACCESS Scopes for single-account execution
+    const SCOPES = 'https://mail.google.com/ https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';
 
     let tokenClient;
-    // Map of account email -> { name, email, picture, accessToken }
-    let accountsMap = JSON.parse(localStorage.getItem('GMAIL_ACCOUNTS') || '{}');
+    let activeAccount = JSON.parse(localStorage.getItem('GMAIL_ACTIVE_ACCOUNT') || 'null');
 
-    // Pre-fill Client ID input if stored
     if (CLIENT_ID) {
       document.getElementById('client_id_input').value = CLIENT_ID;
     }
@@ -180,37 +305,71 @@
       }
     }
 
-    function initOAuth() {
+    function initOAuth(loginHint = '') {
       if (!CLIENT_ID) return;
-      
-      // Request prompt='select_account' to allow adding multiple accounts explicitly
-      tokenClient = google.accounts.oauth2.initTokenClient({
+
+      const clientConfig = {
         client_id: CLIENT_ID,
         scope: SCOPES,
-        prompt: 'select_account',
         callback: (tokenResponse) => {
           if (tokenResponse.access_token) {
             fetchAccountInfo(tokenResponse.access_token);
           }
-        },
-      });
+        }
+      };
+
+      // GitHub-style single account targeting (NO multi-account prompt)
+      if (loginHint) {
+        clientConfig.login_hint = loginHint;
+      }
+
+      tokenClient = google.accounts.oauth2.initTokenClient(clientConfig);
     }
 
     window.onload = function() {
-      if (CLIENT_ID) {
-        initOAuth();
+      // Check PWA rule
+      const pwaGate = document.getElementById('pwa_gate_banner');
+      const appContent = document.getElementById('app_content');
+
+      if (!isRunningInPWA()) {
+        pwaGate.classList.remove('hidden');
+        appContent.style.opacity = '0.5';
+        appContent.style.pointerEvents = 'none';
+      } else {
+        pwaGate.classList.add('hidden');
+        appContent.style.opacity = '1';
+        appContent.style.pointerEvents = 'auto';
       }
+
+      if (CLIENT_ID) {
+        initOAuth(activeAccount ? activeAccount.email : '');
+      }
+
+      if (currentSessionRole) {
+        document.getElementById('code_status_msg').style.color = '#059669';
+        document.getElementById('code_status_msg').textContent = `✓ Active Session: ${currentSessionRole}`;
+      }
+
       renderAccounts();
     };
 
-    function handleAuthClick() {
+    function handleSingleAccountAuth() {
+      if (!isRunningInPWA()) {
+        alert('You MUST run this app installed as a PWA to log in!');
+        return;
+      }
+
+      if (!currentSessionRole) {
+        alert('Please enter a valid Security Access Code first.');
+        return;
+      }
+
       if (!CLIENT_ID) {
         alert('Please enter and save a valid OAuth Client ID first.');
         return;
       }
-      if (!tokenClient) {
-        initOAuth();
-      }
+
+      initOAuth(activeAccount ? activeAccount.email : '');
       tokenClient.requestAccessToken();
     }
 
@@ -223,14 +382,14 @@
       .then(response => response.json())
       .then(data => {
         if (data.email) {
-          // Add or update the account in local state
-          accountsMap[data.email] = {
+          activeAccount = {
             name: data.name || 'User',
             email: data.email,
             picture: data.picture || 'https://via.placeholder.com/50',
-            accessToken: token
+            accessToken: token,
+            role: currentSessionRole || 'USER'
           };
-          saveAccountsState();
+          localStorage.setItem('GMAIL_ACTIVE_ACCOUNT', JSON.stringify(activeAccount));
           renderAccounts();
         }
       })
@@ -239,85 +398,48 @@
       });
     }
 
-    function removeAccount(email) {
-      const account = accountsMap[email];
-      if (account && account.accessToken) {
-        // Attempt to revoke OAuth access token with Google
-        google.accounts.oauth2.revoke(account.accessToken, () => {
-          delete accountsMap[email];
-          saveAccountsState();
+    function handleSignoutAll() {
+      if (activeAccount && activeAccount.accessToken) {
+        google.accounts.oauth2.revoke(activeAccount.accessToken, () => {
+          activeAccount = null;
+          localStorage.removeItem('GMAIL_ACTIVE_ACCOUNT');
           renderAccounts();
         });
       } else {
-        delete accountsMap[email];
-        saveAccountsState();
+        activeAccount = null;
+        localStorage.removeItem('GMAIL_ACTIVE_ACCOUNT');
         renderAccounts();
       }
-    }
-
-    function handleSignoutAll() {
-      const emails = Object.keys(accountsMap);
-      let revokedCount = 0;
-
-      if (emails.length === 0) return;
-
-      emails.forEach(email => {
-        const token = accountsMap[email].accessToken;
-        if (token) {
-          google.accounts.oauth2.revoke(token, () => {
-            revokedCount++;
-            if (revokedCount === emails.length) {
-              accountsMap = {};
-              saveAccountsState();
-              renderAccounts();
-            }
-          });
-        } else {
-          revokedCount++;
-          if (revokedCount === emails.length) {
-            accountsMap = {};
-            saveAccountsState();
-            renderAccounts();
-          }
-        }
-      });
-    }
-
-    function saveAccountsState() {
-      localStorage.setItem('GMAIL_ACCOUNTS', JSON.stringify(accountsMap));
     }
 
     function renderAccounts() {
       const container = document.getElementById('accounts_container');
       container.innerHTML = '';
 
-      const accountEmails = Object.keys(accountsMap);
-      const hasAccounts = accountEmails.length > 0;
+      const hasActiveAccount = activeAccount !== null;
 
-      // Toggle main UI action buttons
-      document.getElementById('authorize_button').classList.toggle('hidden', hasAccounts);
-      document.getElementById('add_account_button').classList.toggle('hidden', !hasAccounts);
-      document.getElementById('signout_all_button').classList.toggle('hidden', !hasAccounts);
+      document.getElementById('authorize_button').classList.toggle('hidden', hasActiveAccount);
+      document.getElementById('signout_all_button').classList.toggle('hidden', !hasActiveAccount);
 
-      // Render each logged-in account card
-      accountEmails.forEach(email => {
-        const acc = accountsMap[email];
-
+      if (hasActiveAccount) {
         const card = document.createElement('div');
         card.className = 'account-card';
+        
+        const badgeClass = activeAccount.role === 'ADMIN' ? 'badge-admin' : 'badge-user';
+
         card.innerHTML = `
           <div class="account-info">
-            <img class="account-avatar" src="${acc.picture}" alt="Profile Picture">
+            <img class="account-avatar" src="${activeAccount.picture}" alt="Profile Picture">
             <div class="account-details">
-              <strong>${acc.name}</strong>
-              <small>${acc.email}</small>
+              <strong>${activeAccount.name} <span class="role-badge ${badgeClass}">${activeAccount.role || 'USER'}</span></strong>
+              <small>${activeAccount.email}</small>
             </div>
           </div>
-          <button class="btn-secondary" onclick="removeAccount('${acc.email}')">Remove</button>
+          <button class="btn-secondary" onclick="handleSignoutAll()">Remove Session</button>
         `;
 
         container.appendChild(card);
-      });
+      }
     }
   </script>
 </body>
