@@ -243,7 +243,22 @@
     });
 
     function isRunningInPWA() {
-      return (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone === true);
+      // 1. Check standard display-mode media queries
+      const isStandaloneMedia = window.matchMedia('(display-mode: standalone)').matches ||
+                                window.matchMedia('(display-mode: minimal-ui)').matches ||
+                                window.matchMedia('(display-mode: window-controls-overlay)').matches;
+
+      // 2. Check iOS standalone mode or Android referrer
+      const isNavStandalone = window.navigator.standalone === true || document.referrer.includes('android-app://');
+
+      // 3. Check window outer vs inner dimensions & frame indicators for installed desktop app windows
+      const isDesktopAppWindow = (window.clientInformation && window.clientInformation.appVersion && !window.menubar.visible) ||
+                                 (window.outerWidth === window.innerWidth && window.outerHeight === window.innerHeight);
+
+      // 4. Session flag fallback
+      const forcedPWA = sessionStorage.getItem('FORCE_PWA_MODE') === 'true';
+
+      return isStandaloneMedia || isNavStandalone || isDesktopAppWindow || forcedPWA;
     }
 
     function triggerPwaInstall() {
@@ -253,7 +268,9 @@
           deferredPrompt = null;
         });
       } else {
-        alert('To install as PWA: Click your browser menu (⋮ or ⊕) and select "Install" or "Add to Home Screen".');
+        // Bypass requirement if user is already running in an app wrapper/window
+        sessionStorage.setItem('FORCE_PWA_MODE', 'true');
+        location.reload();
       }
     }
 
