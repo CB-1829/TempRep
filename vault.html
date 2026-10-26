@@ -1,108 +1,324 @@
-<!-- ... existing code ... -->
-<div style="margin-bottom: 12px;">
-  <label for="client_id_input">Google OAuth Client ID: </label>
-  <input type="text" id="client_id_input" placeholder="Enter your OAuth Client ID..." style="width: 300px;">
-  <button onclick="saveClientId()">Save Key</button>
-</div>
-
-<div style="margin-bottom: 12px;">
-  <button id="authorize_button" onclick="handleAuthClick()">Log in with Gmail</button>
-  <button id="signout_button" onclick="handleSignoutClick()" style="display:none;">Sign Out</button>
-</div>
-
-<div id="account_info" style="display:none; margin-bottom: 12px; border: 1px solid #ccc; padding: 10px; border-radius: 6px; max-width: 300px;">
-  <img id="user_avatar" src="" alt="Profile Picture" style="width: 50px; height: 50px; border-radius: 50%; vertical-align: middle; margin-right: 10px;">
-  <span style="display: inline-block; vertical-align: middle;">
-    <strong id="user_name"></strong><br>
-    <small id="user_email"></small>
-  </span>
-</div>
-
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<script>
-  let CLIENT_ID = localStorage.getItem('GMAIL_CLIENT_ID') || '';
-  const SCOPES = 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';
-
-  let tokenClient;
-  let accessToken = null;
-
-  // Pre-fill input if previously saved
-  if (CLIENT_ID) {
-    document.getElementById('client_id_input').value = CLIENT_ID;
-  }
-
-  function saveClientId() {
-    const inputVal = document.getElementById('client_id_input').value.trim();
-    if (inputVal) {
-      localStorage.setItem('GMAIL_CLIENT_ID', inputVal);
-      CLIENT_ID = inputVal;
-      initOAuth();
-      alert('Client ID saved!');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Accounts Manager</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding: 24px;
+      background-color: #f8fafc;
+      color: #0f172a;
+      max-width: 650px;
+      margin: 0 auto;
     }
-  }
 
-  function initOAuth() {
-    if (!CLIENT_ID) return;
-    tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: CLIENT_ID,
-      scope: SCOPES,
-      callback: (tokenResponse) => {
-        if (tokenResponse.access_token) {
-          accessToken = tokenResponse.access_token;
-          document.getElementById('authorize_button').innerText = 'Connected!';
-          document.getElementById('signout_button').style.display = 'inline';
-          fetchAccountInfo();
-        }
-      },
-    });
-  }
+    .card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
 
-  // Initialize Google Auth on load
-  window.onload = function() {
+    label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"] {
+      width: calc(100% - 110px);
+      padding: 8px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+    }
+
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background-color 0.2s, opacity 0.2s;
+    }
+
+    .btn-primary {
+      background-color: #2563eb;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: #1d4ed8;
+    }
+
+    .btn-secondary {
+      background-color: #e2e8f0;
+      color: #334155;
+    }
+
+    .btn-secondary:hover {
+      background-color: #cbd5e1;
+    }
+
+    .btn-danger {
+      background-color: #ef4444;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background-color: #dc2626;
+    }
+
+    .btn-add {
+      background-color: #10b981;
+      color: white;
+    }
+
+    .btn-add:hover {
+      background-color: #059669;
+    }
+
+    .account-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      background-color: #ffffff;
+    }
+
+    .account-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .account-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid #e2e8f0;
+    }
+
+    .account-details strong {
+      display: block;
+      font-size: 1rem;
+      color: #1e293b;
+    }
+
+    .account-details small {
+      color: #64748b;
+      font-size: 0.85rem;
+    }
+
+    .actions-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Google Accounts Manager</h2>
+
+  <!-- Client ID Config Section -->
+  <div class="card">
+    <label for="client_id_input">Google OAuth Client ID:</label>
+    <div style="display: flex; gap: 8px;">
+      <input type="text" id="client_id_input" placeholder="Enter your OAuth Client ID...">
+      <button class="btn-primary" onclick="saveClientId()">Save Key</button>
+    </div>
+  </div>
+
+  <!-- Primary Login Controls -->
+  <div class="actions-row">
+    <button id="authorize_button" class="btn-primary" onclick="handleAuthClick()">Log in with Gmail</button>
+    <button id="add_account_button" class="btn-add hidden" onclick="handleAuthClick()">+ Add Account</button>
+    <button id="signout_all_button" class="btn-danger hidden" onclick="handleSignoutAll()">Sign Out All</button>
+  </div>
+
+  <!-- Connected Accounts Container -->
+  <div id="accounts_container"></div>
+
+  <script>
+    let CLIENT_ID = localStorage.getItem('GMAIL_CLIENT_ID') || '';
+    const SCOPES = 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';
+
+    let tokenClient;
+    // Map of account email -> { name, email, picture, accessToken }
+    let accountsMap = JSON.parse(localStorage.getItem('GMAIL_ACCOUNTS') || '{}');
+
+    // Pre-fill Client ID input if stored
     if (CLIENT_ID) {
-      initOAuth();
+      document.getElementById('client_id_input').value = CLIENT_ID;
     }
-  };
 
-  function handleAuthClick() {
-    if (!CLIENT_ID) {
-      alert('Please enter and save a valid OAuth Client ID first.');
-      return;
+    function saveClientId() {
+      const inputVal = document.getElementById('client_id_input').value.trim();
+      if (inputVal) {
+        localStorage.setItem('GMAIL_CLIENT_ID', inputVal);
+        CLIENT_ID = inputVal;
+        initOAuth();
+        alert('Client ID saved!');
+      }
     }
-    if (!tokenClient) {
-      initOAuth();
-    }
-    tokenClient.requestAccessToken();
-  }
 
-  function handleSignoutClick() {
-    if (accessToken) {
-      google.accounts.oauth2.revoke(accessToken, () => {
-        accessToken = null;
-        document.getElementById('authorize_button').innerText = 'Log in with Gmail';
-        document.getElementById('signout_button').style.display = 'none';
-        document.getElementById('account_info').style.display = 'none';
+    function initOAuth() {
+      if (!CLIENT_ID) return;
+      
+      // Request prompt='select_account' to allow adding multiple accounts explicitly
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        prompt: 'select_account',
+        callback: (tokenResponse) => {
+          if (tokenResponse.access_token) {
+            fetchAccountInfo(tokenResponse.access_token);
+          }
+        },
       });
     }
-  }
 
-  function fetchAccountInfo() {
-    fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`
+    window.onload = function() {
+      if (CLIENT_ID) {
+        initOAuth();
       }
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.email) {
-        document.getElementById('user_avatar').src = data.picture || 'https://via.placeholder.com/50';
-        document.getElementById('user_name').innerText = data.name || 'User';
-        document.getElementById('user_email').innerText = data.email;
-        document.getElementById('account_info').style.display = 'block';
+      renderAccounts();
+    };
+
+    function handleAuthClick() {
+      if (!CLIENT_ID) {
+        alert('Please enter and save a valid OAuth Client ID first.');
+        return;
       }
-    })
-    .catch(error => {
-      console.error('Error fetching user info:', error);
-    });
-  }
-</script>
+      if (!tokenClient) {
+        initOAuth();
+      }
+      tokenClient.requestAccessToken();
+    }
+
+    function fetchAccountInfo(token) {
+      fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.email) {
+          // Add or update the account in local state
+          accountsMap[data.email] = {
+            name: data.name || 'User',
+            email: data.email,
+            picture: data.picture || 'https://via.placeholder.com/50',
+            accessToken: token
+          };
+          saveAccountsState();
+          renderAccounts();
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching user info:', error);
+      });
+    }
+
+    function removeAccount(email) {
+      const account = accountsMap[email];
+      if (account && account.accessToken) {
+        // Attempt to revoke OAuth access token with Google
+        google.accounts.oauth2.revoke(account.accessToken, () => {
+          delete accountsMap[email];
+          saveAccountsState();
+          renderAccounts();
+        });
+      } else {
+        delete accountsMap[email];
+        saveAccountsState();
+        renderAccounts();
+      }
+    }
+
+    function handleSignoutAll() {
+      const emails = Object.keys(accountsMap);
+      let revokedCount = 0;
+
+      if (emails.length === 0) return;
+
+      emails.forEach(email => {
+        const token = accountsMap[email].accessToken;
+        if (token) {
+          google.accounts.oauth2.revoke(token, () => {
+            revokedCount++;
+            if (revokedCount === emails.length) {
+              accountsMap = {};
+              saveAccountsState();
+              renderAccounts();
+            }
+          });
+        } else {
+          revokedCount++;
+          if (revokedCount === emails.length) {
+            accountsMap = {};
+            saveAccountsState();
+            renderAccounts();
+          }
+        }
+      });
+    }
+
+    function saveAccountsState() {
+      localStorage.setItem('GMAIL_ACCOUNTS', JSON.stringify(accountsMap));
+    }
+
+    function renderAccounts() {
+      const container = document.getElementById('accounts_container');
+      container.innerHTML = '';
+
+      const accountEmails = Object.keys(accountsMap);
+      const hasAccounts = accountEmails.length > 0;
+
+      // Toggle main UI action buttons
+      document.getElementById('authorize_button').classList.toggle('hidden', hasAccounts);
+      document.getElementById('add_account_button').classList.toggle('hidden', !hasAccounts);
+      document.getElementById('signout_all_button').classList.toggle('hidden', !hasAccounts);
+
+      // Render each logged-in account card
+      accountEmails.forEach(email => {
+        const acc = accountsMap[email];
+
+        const card = document.createElement('div');
+        card.className = 'account-card';
+        card.innerHTML = `
+          <div class="account-info">
+            <img class="account-avatar" src="${acc.picture}" alt="Profile Picture">
+            <div class="account-details">
+              <strong>${acc.name}</strong>
+              <small>${acc.email}</small>
+            </div>
+          </div>
+          <button class="btn-secondary" onclick="removeAccount('${acc.email}')">Remove</button>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+  </script>
+</body>
+</html>
