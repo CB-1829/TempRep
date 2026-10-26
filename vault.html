@@ -1,21 +1,21 @@
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<button id="authorize_button" onclick="handleAuthClick()">Log in with Gmail</button>
-<button id="signout_button" onclick="handleSignoutClick()" style="display:none;">Sign Out</button>
-<br><br>
-
+<!-- ... existing code ... -->
 <div style="margin-bottom: 12px;">
   <label for="client_id_input">Google OAuth Client ID: </label>
   <input type="text" id="client_id_input" placeholder="Enter your OAuth Client ID..." style="width: 300px;">
   <button onclick="saveClientId()">Save Key</button>
 </div>
 
-<input type="gmail" id="gmail" placeholder="Recipient Gmail"> 
-<input type="submit" id="send" value="Send Email">
-<textarea id="body" placeholder="Email body text..."></textarea>
+<div id="account_info" style="display:none; margin-bottom: 12px; border: 1px solid #ccc; padding: 10px; border-radius: 6px; max-width: 300px;">
+  <img id="user_avatar" src="" alt="Profile Picture" style="width: 50px; height: 50px; border-radius: 50%; vertical-align: middle; margin-right: 10px;">
+  <span style="display: inline-block; vertical-align: middle;">
+    <strong id="user_name"></strong><br>
+    <small id="user_email"></small>
+  </span>
+</div>
 
 <script>
   let CLIENT_ID = localStorage.getItem('GMAIL_CLIENT_ID') || '';
-  const SCOPES = 'https://www.googleapis.com/auth/gmail.send';
+  const SCOPES = 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';
 
   let tokenClient;
   let accessToken = null;
@@ -45,6 +45,7 @@
           accessToken = tokenResponse.access_token;
           document.getElementById('authorize_button').innerText = 'Connected!';
           document.getElementById('signout_button').style.display = 'inline';
+          fetchAccountInfo();
         }
       },
     });
@@ -71,59 +72,28 @@
         accessToken = null;
         document.getElementById('authorize_button').innerText = 'Log in with Gmail';
         document.getElementById('signout_button').style.display = 'none';
+        document.getElementById('account_info').style.display = 'none';
       });
     }
   }
 
-  document.getElementById('send').addEventListener('click', function(e) {
-    e.preventDefault();
-    if (!accessToken) {
-      alert('Please click "Log in with Gmail" first to authorize sending emails.');
-      return;
-    }
-
-    const recipient = document.getElementById('gmail').value;
-    const bodyText = document.getElementById('body').value;
-
-    if (!recipient || !bodyText) {
-      alert('Please fill out both recipient email and body text.');
-      return;
-    }
-
-    const email = [
-      `To: ${recipient}`,
-      'Content-Type: text/plain; charset=utf-8',
-      'MIME-Version: 1.0',
-      'Subject: Message from Gmail Sender',
-      '',
-      bodyText
-    ].join('\n');
-
-    const base64EncodedEmail = btoa(unescape(encodeURIComponent(email)))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
-
-    fetch('https://gmail.googleapis.com/upload/gmail/v1/users/me/messages/send', {
-      method: 'POST',
+  function fetchAccountInfo() {
+    fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        raw: base64EncodedEmail
-      })
+        'Authorization': `Bearer ${accessToken}`
+      }
     })
     .then(response => response.json())
     .then(data => {
-      if (data.id) {
-        alert('Email sent successfully!');
-      } else {
-        alert('Failed to send email: ' + JSON.stringify(data));
+      if (data.email) {
+        document.getElementById('user_avatar').src = data.picture || 'https://via.placeholder.com/50';
+        document.getElementById('user_name').innerText = data.name || 'User';
+        document.getElementById('user_email').innerText = data.email;
+        document.getElementById('account_info').style.display = 'block';
       }
     })
     .catch(error => {
-      alert('Error sending email: ' + error);
+      console.error('Error fetching user info:', error);
     });
-  });
+  }
 </script>
